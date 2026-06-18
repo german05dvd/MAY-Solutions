@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAY Solution — Conexión Comercial Internacional</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#07192E;
+  --navy2:#0D2B4E;
+  --blue:#1A5C9A;
+  --sky:#4DA6D8;
+  --skylight:#7DC4E8;
+  --white:#FFFFFF;
+  --muted:rgba(255,255,255,0.55);
+  --card:rgba(255,255,255,0.04);
+  --border:rgba(77,166,216,0.18);
+  --font:'Montserrat',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--navy);color:var(--white);overflow-x:hidden;cursor:none}
+
+/* ── CURSOR ── */
+#cursor{position:fixed;width:10px;height:10px;background:var(--sky);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,opacity .2s;mix-blend-mode:screen}
+#cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(77,166,216,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:transform .08s,width .2s,height .2s;will-change:transform}
+body:hover #cursor{opacity:1}
+
+/* ── CANVAS BG ── */
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.55}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 6%;
+  background:rgba(7,25,46,0.7);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  transition:padding .3s;
+}
+nav.scrolled{padding:14px 6%}
+.logo-wrap{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{width:40px;height:40px;position:relative}
+.logo-mark svg{width:100%;height:100%}
+.logo-mark img{
+  width :100%;
+  height: 100%; 
+  object-fit: contain ;
+  border-radius: 50% ;}
+.logo-name{font-size:20px;font-weight:900;letter-spacing:-0.5px;color:var(--white)}
+.logo-name em{font-style:normal;color:var(--sky)}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{
+  font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;transition:color .2s;position:relative;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;
+  background:var(--sky);transform:scaleX(0);transform-origin:left;transition:transform .25s;
+}
+.nav-links a:hover{color:var(--white)}
+.nav-links a:hover::after{transform:scaleX(1)}
+.nav-cta{
+  background:transparent;color:var(--sky);
+  border:1.5px solid var(--sky);
+  padding:9px 22px;border-radius:100px;
+  font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  text-decoration:none;transition:all .25s;
+}
+.nav-cta:hover{background:var(--sky);color:var(--navy)}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:flex;align-items:center;
+  padding:130px 6% 90px;position:relative;z-index:1;
+}
+.hero-inner{max-width:1200px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.hero-left{}
+.tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--sky);
+  margin-bottom:28px;opacity:0;animation:up .7s .1s ease forwards;
+}
+.tag-dot{width:5px;height:5px;border-radius:50%;background:var(--sky);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(77,166,216,0.6)}50%{box-shadow:0 0 0 6px rgba(77,166,216,0)}}
+
+.hero h1{
+  font-size:clamp(36px,4.5vw,64px);font-weight:900;line-height:1.04;
+  letter-spacing:-2px;margin-bottom:26px;
+  opacity:0;animation:up .7s .2s ease forwards;
+}
+.hero h1 .hl{
+  color:transparent;
+  background:linear-gradient(90deg,var(--sky),var(--skylight));
+  -webkit-background-clip:text;background-clip:text;
+}
+.hero-sub{
+  font-size:16px;font-weight:300;line-height:1.8;color:var(--muted);
+  max-width:480px;margin-bottom:44px;
+  opacity:0;animation:up .7s .3s ease forwards;
+}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;opacity:0;animation:up .7s .4s ease forwards}
+.btn-main{
+  background:var(--sky);color:var(--navy);
+  padding:15px 34px;border-radius:100px;
+  font-size:13px;font-weight:800;letter-spacing:0.3px;
+  text-decoration:none;display:inline-flex;align-items:center;gap:8px;
+  transition:all .25s;
+}
+.btn-main:hover{background:var(--skylight);transform:translateY(-2px);box-shadow:0 12px 32px rgba(77,166,216,0.3)}
+.btn-line{
+  border:1.5px solid rgba(255,255,255,0.2);color:var(--white);
+  padding:15px 34px;border-radius:100px;
+  font-size:13px;font-weight:600;
+  text-decoration:none;transition:all .25s;
+}
+.btn-line:hover{border-color:var(--sky);color:var(--sky)}
+
+/* Globe / connection visual */
+.hero-right{display:flex;justify-content:center;align-items:center;opacity:0;animation:up .9s .35s ease forwards}
+#globe-canvas{width:100%;max-width:420px;aspect-ratio:1}
+
+/* ── SECTION BASE ── */
+section{padding:110px 6%;position:relative;z-index:1}
+.s-inner{max-width:1200px;margin:0 auto}
+.s-tag{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--sky);margin-bottom:16px;display:block}
+.s-title{font-size:clamp(28px,3.5vw,46px);font-weight:800;line-height:1.1;letter-spacing:-1px;margin-bottom:18px}
+.s-lead{font-size:15px;font-weight:300;line-height:1.85;color:var(--muted);max-width:560px}
+
+/* ── ABOUT ── */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.about-cards{display:grid;gap:16px}
+.about-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;padding:28px;
+  transition:all .3s;cursor:default;
+  position:relative;overflow:hidden;
+}
+.about-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(77,166,216,0.08),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.about-card:hover{border-color:rgba(77,166,216,0.45);transform:translateX(6px)}
+.about-card:hover::before{opacity:1}
+.about-card-icon{
+  width:38px;height:38px;border-radius:10px;
+  background:rgba(77,166,216,0.12);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;
+}
+.about-card-icon svg{width:18px;height:18px;stroke:var(--sky);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.about-card h4{font-size:13px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--sky);margin-bottom:8px}
+.about-card p{font-size:14px;line-height:1.75;color:var(--muted);font-weight:300}
+
+/* ── SERVICES ── */
+.services{background:rgba(13,43,78,0.35)}
+.services-header{text-align:center;margin-bottom:64px}
+.services-header .s-lead{margin:0 auto}
+.services-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+
+.srv{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;padding:40px 34px;
+  position:relative;overflow:hidden;
+  transition:all .3s;cursor:default;
+  group:hover;
+}
+.srv::after{
+  content:'';position:absolute;
+  bottom:-60px;right:-60px;
+  width:140px;height:140px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(77,166,216,0.1),transparent);
+  transition:all .4s;
+}
+.srv:hover{border-color:rgba(77,166,216,0.4);transform:translateY(-6px);box-shadow:0 20px 50px rgba(0,0,0,0.3)}
+.srv:hover::after{width:200px;height:200px;bottom:-80px;right:-80px}
+
+.srv-num{
+  font-size:11px;font-weight:800;letter-spacing:2px;color:rgba(77,166,216,0.35);
+  margin-bottom:20px;display:block;
+}
+.srv-icon{
+  width:58px;height:58px;border-radius:16px;
+  background:rgba(77,166,216,0.1);border:1px solid rgba(77,166,216,0.2);
+  display:flex;align-items:center;justify-content:center;margin-bottom:24px;
+  transition:all .3s;
+}
+.srv:hover .srv-icon{background:rgba(77,166,216,0.2);border-color:rgba(77,166,216,0.4)}
+.srv-icon svg{width:28px;height:28px;stroke:var(--sky);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.srv h3{font-size:19px;font-weight:700;margin-bottom:14px;line-height:1.3}
+.srv p{font-size:14px;line-height:1.8;color:var(--muted);font-weight:300}
+
+/* ── FLOW / CONNECTION VIZ ── */
+.flow-section{}
+.flow-header{text-align:center;margin-bottom:72px}
+.flow-header .s-lead{margin:0 auto;text-align:center}
+.flow-steps{
+  display:flex;align-items:center;justify-content:center;
+  gap:0;flex-wrap:nowrap;
+  position:relative;
+}
+.flow-step{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;flex:1;max-width:200px;
+  opacity:0;transform:translateY(20px);transition:all .6s;
+}
+.flow-step.vis{opacity:1;transform:translateY(0)}
+.step-circle{
+  width:72px;height:72px;border-radius:50%;
+  background:rgba(77,166,216,0.1);
+  border:1.5px solid rgba(77,166,216,0.3);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:20px;position:relative;
+  transition:all .3s;cursor:default;
+}
+.step-circle::before{
+  content:'';position:absolute;inset:-6px;
+  border-radius:50%;border:1px dashed rgba(77,166,216,0.2);
+  animation:spin 8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.flow-step:hover .step-circle{
+  background:rgba(77,166,216,0.2);
+  border-color:var(--sky);
+  box-shadow:0 0 28px rgba(77,166,216,0.25);
+}
+.step-circle svg{width:28px;height:28px;stroke:var(--sky);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.step-title{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--white)}
+.step-desc{font-size:12px;font-weight:300;color:var(--muted);line-height:1.6}
+.flow-arrow{
+  flex-shrink:0;width:60px;display:flex;align-items:center;justify-content:center;
+  margin-top:-20px;
+}
+.flow-arrow svg{width:32px;height:16px;stroke:rgba(77,166,216,0.4);fill:none;stroke-width:1.2;stroke-linecap:round;stroke-dasharray:4 3;animation:dash 2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-14}}
+
+/* ── STATS ── */
+.stats-bar{
+  background:rgba(13,43,78,0.5);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:60px 6%;
+}
+.stats-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.stat{
+  text-align:center;padding:20px;
+  border-right:1px solid var(--border);
+  cursor:default;transition:all .3s;
+}
+.stat:last-child{border-right:none}
+.stat:hover .stat-n{color:var(--skylight)}
+.stat-n{font-size:42px;font-weight:900;letter-spacing:-2px;color:var(--sky);transition:color .3s}
+.stat-l{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:8px}
+
+/* ── CONTACT ── */
+.contact{background:rgba(13,43,78,0.3)}
+.contact-inner{max-width:900px;margin:0 auto;text-align:center}
+.contact-inner .s-lead{margin:0 auto 56px;text-align:center}
+.contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.c-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;padding:32px 20px;
+  text-decoration:none;
+  transition:all .3s;display:flex;flex-direction:column;align-items:center;gap:16px;
+}
+.c-card:hover{border-color:rgba(77,166,216,0.5);transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,0.3)}
+.c-icon{
+  width:54px;height:54px;border-radius:50%;
+  background:rgba(77,166,216,0.1);border:1px solid rgba(77,166,216,0.25);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;
+}
+.c-card:hover .c-icon{background:rgba(77,166,216,0.2);box-shadow:0 0 20px rgba(77,166,216,0.2)}
+.c-icon svg{width:22px;height:22px;stroke:var(--sky);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.c-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.c-val{font-size:14px;font-weight:600;color:var(--white);line-height:1.6;text-align:center}
+
+/* ── FOOTER ── */
+footer{
+  padding:32px 6%;text-align:center;
+  font-size:12px;font-weight:300;color:rgba(255,255,255,0.3);
+  border-top:1px solid var(--border);
+  position:relative;z-index:1;
+}
+footer strong{color:rgba(255,255,255,0.6);font-weight:600}
+
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}
+.reveal.vis{opacity:1;transform:translateY(0)}
+.reveal-d1{transition-delay:.1s}.reveal-d2{transition-delay:.2s}.reveal-d3{transition-delay:.3s}
+
+/* ── ANIMATIONS ── */
+@keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .hero-inner,.about-grid{grid-template-columns:1fr}
+  .hero-right{display:none}
+  .services-grid{grid-template-columns:1fr}
+  .contact-grid{grid-template-columns:1fr}
+  .stats-inner{grid-template-columns:1fr;gap:24px}
+  .stat{border-right:none;border-bottom:1px solid var(--border)}
+  .stat:last-child{border-bottom:none}
+  .flow-steps{flex-direction:column;gap:8px}
+  .flow-arrow{transform:rotate(90deg);margin:0}
+  .nav-links{display:none}
+}
+
+/* ── PARTICLE NODE ── */
+.particle{position:absolute;border-radius:50%;pointer-events:none}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="logo-wrap" href="#">
+    <div class="logo-mark">
+      <img src="icono.jpeg" alt="MAY Solution" style="width:100%;height:100%;object-fit:contain;">
+    </div>
+    <span class="logo-name">MAY <em>Solutions</em></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#nosotros">Nosotros</a></li>
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#proceso">Proceso</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+  </ul>
+  <a class="nav-cta" href="#contacto">Conectemos</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="tag"><span class="tag-dot"></span>Conexión Comercial Internacional</div>
+      <h1>Donde el mundo<br>se conecta con<br><span class="hl">tu negocio.</span></h1>
+      <p class="hero-sub">Conectamos el mercado cubano con proveedores globales mediante soluciones integrales de importación, ventas y marketing.</p>
+      <div class="hero-btns">
+        <a class="btn-main" href="#servicios">
+          Explorar servicios
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="btn-line" href="#contacto">Hablar con nosotros</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <canvas id="globe-canvas"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat">
+      <div class="stat-n" data-count="3">0</div>
+      <div class="stat-l">Socios fundadores</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n" data-count="4">0</div>
+      <div class="stat-l">Servicios especializados</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">Global</div>
+      <div class="stat-l">Alcance de proveedores</div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="nosotros">
+  <div class="s-inner about-grid">
+    <div class="reveal">
+      <span class="s-tag">Quiénes somos</span>
+      <h2 class="s-title">Una empresa con propósito global</h2>
+      <p class="s-lead">Somos una empresa fundada por tres socios con visión internacional. Nuestro propósito es conectar el mercado cubano con proveedores globales, impulsando el crecimiento sostenible de cada cliente a través de vínculos estratégicos, confiables y rentables.</p>
+    </div>
+    <div class="about-cards">
+      <div class="about-card reveal reveal-d1">
+        <div class="about-card-icon">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <h4>Visión</h4>
+        <p>Ser el referente en conexión comercial internacional para Cuba, liderando la transformación empresarial con excelencia e innovación.</p>
+      </div>
+      <div class="about-card reveal reveal-d2">
+        <div class="about-card-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h4>Misión</h4>
+        <p>Facilitar vínculos estratégicos, optimizar procesos de importación y potenciar negocios locales con soluciones confiables y rentables.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="servicios" class="services">
+  <div class="s-inner">
+    <div class="services-header reveal">
+      <span class="s-tag">Servicios</span>
+      <h2 class="s-title">Soluciones diseñadas<br>para tu crecimiento</h2>
+      <p class="s-lead">Desde la búsqueda del proveedor ideal hasta la conexión directa con tu negocio, acompañamos cada etapa del proceso.</p>
+    </div>
+    <div class="services-grid">
+      <div class="srv reveal reveal-d1">
+        <span class="srv-num">01</span>
+        <div class="srv-icon">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <h3>Búsqueda de proveedores internacionales</h3>
+        <p>Localizamos fabricantes y distribuidores confiables en todo el mundo, adaptados a tus necesidades y presupuesto.</p>
+      </div>
+      <div class="srv reveal reveal-d2">
+        <span class="srv-num">02</span>
+        <div class="srv-icon">
+          <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <h3>Asesoría comercial estratégica</h3>
+        <p>Diseñamos planes de acción seguros y rentables que guían cada etapa de tu proceso de importación y expansión.</p>
+      </div>
+      <div class="srv reveal reveal-d1">
+        <span class="srv-num">03</span>
+        <div class="srv-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+        </div>
+        <h3>Optimización de compras</h3>
+        <p>Reducimos costos y maximizamos el valor de tu inversión mediante negociaciones estratégicas y análisis de mercado.</p>
+      </div>
+      <div class="srv reveal reveal-d2">
+        <span class="srv-num">04</span>
+        <div class="srv-icon">
+          <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        </div>
+        <h3>Conexión negocio–proveedor</h3>
+        <p>Actuamos como puente sólido y transparente entre empresas cubanas y el mercado global, garantizando relaciones duraderas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FLOW PROCESS -->
+<section id="proceso">
+  <div class="s-inner">
+    <div class="flow-header reveal">
+      <span class="s-tag">Cómo trabajamos</span>
+      <h2 class="s-title">Del mundo a tu negocio</h2>
+      <p class="s-lead">Un proceso claro, transparente y diseñado para maximizar cada oportunidad comercial.</p>
+    </div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-circle">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <span class="step-title">Consulta inicial</span>
+        <span class="step-desc">Entendemos tu negocio y objetivos</span>
+      </div>
+      <div class="flow-arrow">
+        <svg viewBox="0 0 32 16"><path d="M0 8h28M22 2l8 6-8 6" stroke-linecap="round"/></svg>
+      </div>
+      <div class="flow-step">
+        <div class="step-circle">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <span class="step-title">Búsqueda global</span>
+        <span class="step-desc">Localizamos el proveedor ideal</span>
+      </div>
+      <div class="flow-arrow">
+        <svg viewBox="0 0 32 16"><path d="M0 8h28M22 2l8 6-8 6" stroke-linecap="round"/></svg>
+      </div>
+      <div class="flow-step">
+        <div class="step-circle">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <span class="step-title">Negociación</span>
+        <span class="step-desc">Condiciones óptimas para ti</span>
+      </div>
+      <div class="flow-arrow">
+        <svg viewBox="0 0 32 16"><path d="M0 8h28M22 2l8 6-8 6" stroke-linecap="round"/></svg>
+      </div>
+      <div class="flow-step">
+        <div class="step-circle">
+          <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        </div>
+        <span class="step-title">Importación</span>
+        <span class="step-desc">Gestión logística completa</span>
+      </div>
+      <div class="flow-arrow">
+        <svg viewBox="0 0 32 16"><path d="M0 8h28M22 2l8 6-8 6" stroke-linecap="round"/></svg>
+      </div>
+      <div class="flow-step">
+        <div class="step-circle">
+          <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <span class="step-title">Crecimiento</span>
+        <span class="step-desc">Tu negocio escala con nosotros</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contacto" class="contact">
+  <div class="contact-inner">
+    <span class="s-tag reveal">Contacto</span>
+    <h2 class="s-title reveal">¿Listo para conectar<br>con el mundo?</h2>
+    <p class="s-lead reveal">Estamos aquí para convertir tus oportunidades en resultados reales. Escríbenos o llámanos hoy mismo.</p>
+    <div class="contact-grid">
+      <a class="c-card reveal reveal-d1" href="https://instagram.com/may_gsolution" target="_blank">
+        <div class="c-icon">
+          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </div>
+        <span class="c-label">Instagram</span>
+        <span class="c-val">@may_gsolution</span>
+      </a>
+      <a class="c-card reveal reveal-d2" href="tel:+5354633977">
+        <div class="c-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.28h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <span class="c-label">Teléfonos</span>
+        <span class="c-val">+53 546 33977<br>+53 559 54348</span>
+      </a>
+      <a class="c-card reveal reveal-d3" href="tel:+5358449975">
+        <div class="c-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.28h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <span class="c-label">Móvil adicional</span>
+        <span class="c-val">+53 584 49975</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 <strong>MAY Solution</strong> — Todos los derechos reservados. Conectando Cuba con el mundo.</p>
+</footer>
+
+<script>
+/* ── CURSOR ── */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function animRing(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing)})();
+document.querySelectorAll('a,button,.srv,.about-card,.c-card,.step-circle').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='16px';cur.style.height='16px';ring.style.width='52px';ring.style.height='52px'});
+  el.addEventListener('mouseleave',()=>{cur.style.width='10px';cur.style.height='10px';ring.style.width='36px';ring.style.height='36px'});
+});
+
+/* ── BACKGROUND CANVAS — animated world grid + nodes ── */
+(function(){
+  const canvas=document.getElementById('bg-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,nodes=[],edges=[];
+  const N=38;
+
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;init()}
+  window.addEventListener('resize',resize);
+
+  function init(){
+    nodes=[];edges=[];
+    for(let i=0;i<N;i++){
+      nodes.push({
+        x:Math.random()*W,y:Math.random()*H,
+        vx:(Math.random()-.5)*0.28,vy:(Math.random()-.5)*0.28,
+        r:Math.random()*2.5+1,
+        pulse:Math.random()*Math.PI*2
+      });
+    }
+  }
+
+  function draw(t){
+    ctx.clearRect(0,0,W,H);
+    // Update
+    nodes.forEach(n=>{
+      n.x+=n.vx;n.y+=n.vy;n.pulse+=0.015;
+      if(n.x<0||n.x>W)n.vx*=-1;
+      if(n.y<0||n.y>H)n.vy*=-1;
+    });
+    // Edges
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<180){
+          const alpha=(1-d/180)*0.18;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x,nodes[i].y);
+          ctx.lineTo(nodes[j].x,nodes[j].y);
+          ctx.strokeStyle=`rgba(77,166,216,${alpha})`;
+          ctx.lineWidth=0.7;
+          ctx.stroke();
+        }
+      }
+    }
+    // Nodes
+    nodes.forEach(n=>{
+      const glow=0.5+0.4*Math.sin(n.pulse);
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(77,166,216,${glow*0.7})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  resize();
+  draw();
+})();
+
+/* ── GLOBE CANVAS ── */
+(function(){
+  const canvas=document.getElementById('globe-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const R=150;
+  let rot=0;
+  const pts=[];
+
+  // Generate random points on sphere
+  for(let i=0;i<60;i++){
+    const lat=(Math.random()-.5)*Math.PI;
+    const lng=Math.random()*Math.PI*2;
+    pts.push({lat,lng});
+  }
+  // Latitude rings
+  const latRings=[-60,-30,0,30,60].map(d=>d*Math.PI/180);
+  const lngLines=[0,45,90,135,180,225,270,315].map(d=>d*Math.PI/180);
+
+  function project(lat,lng,rot){
+    const cosLat=Math.cos(lat),sinLat=Math.sin(lat);
+    const cosLng=Math.cos(lng+rot),sinLng=Math.sin(lng+rot);
+    const x=cosLat*sinLng;
+    const y=sinLat;
+    const z=cosLat*cosLng;
+    return{x:x*R,y:-y*R,z};
+  }
+
+  function drawGlobe(){
+    const dpr=window.devicePixelRatio||1;
+    canvas.width=canvas.offsetWidth*dpr;
+    canvas.height=canvas.offsetHeight*dpr;
+    ctx.scale(dpr,dpr);
+    const cx=canvas.offsetWidth/2,cy=canvas.offsetHeight/2;
+    rot+=0.004;
+    ctx.clearRect(0,0,canvas.offsetWidth,canvas.offsetHeight);
+
+    // Outer glow
+    const grd=ctx.createRadialGradient(cx,cy,R*.7,cx,cy,R*1.2);
+    grd.addColorStop(0,'rgba(77,166,216,0.06)');
+    grd.addColorStop(1,'rgba(77,166,216,0)');
+    ctx.beginPath();ctx.arc(cx,cy,R*1.2,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+
+    // Globe circle
+    ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.strokeStyle='rgba(77,166,216,0.15)';ctx.lineWidth=1;ctx.stroke();
+
+    // Lat rings
+    latRings.forEach(lat=>{
+      ctx.beginPath();
+      let first=true;
+      for(let lng=0;lng<=Math.PI*2;lng+=0.06){
+        const p=project(lat,lng,rot);
+        if(p.z<0){first=true;continue}
+        if(first){ctx.moveTo(cx+p.x,cy+p.y);first=false}
+        else ctx.lineTo(cx+p.x,cy+p.y);
+      }
+      ctx.strokeStyle='rgba(77,166,216,0.12)';ctx.lineWidth=0.6;ctx.stroke();
+    });
+
+    // Lng lines
+    lngLines.forEach(lng=>{
+      ctx.beginPath();
+      let first=true;
+      for(let lat=-Math.PI/2;lat<=Math.PI/2;lat+=0.06){
+        const p=project(lat,lng,rot);
+        if(p.z<0){first=true;continue}
+        if(first){ctx.moveTo(cx+p.x,cy+p.y);first=false}
+        else ctx.lineTo(cx+p.x,cy+p.y);
+      }
+      ctx.strokeStyle='rgba(77,166,216,0.1)';ctx.lineWidth=0.6;ctx.stroke();
+    });
+
+    // Points
+    pts.forEach(pt=>{
+      const p=project(pt.lat,pt.lng,rot);
+      if(p.z<0)return;
+      ctx.beginPath();ctx.arc(cx+p.x,cy+p.y,1.8,0,Math.PI*2);
+      ctx.fillStyle='rgba(77,166,216,0.65)';ctx.fill();
+    });
+
+    // Arrow symbol pointing outward from top-right of globe
+    const ax=cx+R*.65,ay=cy-R*.55;
+    ctx.beginPath();
+    ctx.moveTo(ax-12,ay+12);ctx.lineTo(ax+12,ay-12);ctx.lineTo(ax+2,ay-12);
+    ctx.moveTo(ax+12,ay-12);ctx.lineTo(ax+12,ay-2);
+    ctx.strokeStyle='rgba(77,166,216,0.8)';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(ax+12,ay-12,3,0,Math.PI*2);ctx.fillStyle='#4DA6D8';ctx.fill();
+
+    requestAnimationFrame(drawGlobe);
+  }
+  drawGlobe();
+})();
+
+/* ── NAV SCROLL ── */
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>60);
+});
+
+/* ── SCROLL REVEAL ── */
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target)}
+  });
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ── FLOW STEPS REVEAL ── */
+const sio=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('.flow-step').forEach((s,i)=>{
+        setTimeout(()=>s.classList.add('vis'),i*120);
+      });
+      sio.disconnect();
+    }
+  });
+},{threshold:0.2});
+const fs=document.querySelector('.flow-steps');
+if(fs)sio.observe(fs);
+
+/* ── COUNTER ANIMATION ── */
+const cio=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('[data-count]').forEach(el=>{
+        const target=parseInt(el.dataset.count);
+        let cur=0;
+        const step=()=>{cur++;el.textContent=cur;if(cur<target)setTimeout(step,180)};
+        step();
+      });
+      cio.disconnect();
+    }
+  });
+},{threshold:0.5});
+const sb=document.querySelector('.stats-bar');
+if(sb)cio.observe(sb);
+</script>
+</body>
+</html>
